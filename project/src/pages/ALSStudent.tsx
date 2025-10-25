@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { supabase, Student } from '../lib/supabase';
-import { BookOpen, Edit, Trash2 } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function ALSStudent() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Student | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortStrand, setSortStrand] = useState('');
+  const [sortYearLevel, setSortYearLevel] = useState('');
+  const [sortSemester, setSortSemester] = useState('');
 
   useEffect(() => {
     fetchALSStudents();
@@ -85,195 +89,82 @@ export default function ALSStudent() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-3">
-          <BookOpen className="text-blue-600" size={32} />
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">ALS Students</h1>
-            <p className="text-slate-600 mt-1">Alternative Learning System enrollees</p>
-          </div>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold text-gray-700">ALS Students</h1>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900">
-            Total ALS Students: {students.length}
+      <div className="mb-6 flex items-center gap-4">
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        </div>
+        <button className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600">
+          Search
+        </button>
+      </div>
+
+      <div className="bg-white/80 rounded-lg shadow-md overflow-hidden backdrop-blur-sm">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+          <h2 className="text-sm font-semibold text-gray-700 uppercase mb-3">
+            List of All ALS Students:
           </h2>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">SORT BY:</span>
+            <select
+              value={sortStrand}
+              onChange={(e) => setSortStrand(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">STRAND</option>
+              <option value="ALS">ALS</option>
+            </select>
+            <select
+              value={sortYearLevel}
+              onChange={(e) => setSortYearLevel(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">YEAR LEVEL</option>
+              <option value="Grade 11">Grade 11</option>
+              <option value="Grade 12">Grade 12</option>
+            </select>
+            <select
+              value={sortSemester}
+              onChange={(e) => setSortSemester(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">SEMESTER</option>
+              <option value="1st">1st</option>
+              <option value="2nd">2nd</option>
+            </select>
+          </div>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-slate-500">Loading...</div>
+          <div className="p-8 text-center text-gray-500">Loading...</div>
         ) : students.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No ALS students found</div>
+          <div className="p-8 text-center text-gray-500">No ALS students found</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-blue-600 text-white">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Last Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    First Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Middle Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Semester
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Year Level
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">EnrollmentStatus</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-gray-200 bg-white/50">
                 {students.map((student) => (
-                  <tr key={student.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-slate-900">
-                      {editingId === student.id ? (
-                        <input
-                          type="text"
-                          value={editForm?.lname || ''}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm!, lname: e.target.value })
-                          }
-                          className="border border-slate-300 rounded px-2 py-1 w-full"
-                        />
-                      ) : (
-                        student.lname
-                      )}
+                  <tr key={student.id} className="hover:bg-blue-50/50 transition-colors">
+                    <td className="px-4 py-3 text-sm text-gray-800">
+                      {student.fname} {student.mname} {student.lname}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">
-                      {editingId === student.id ? (
-                        <input
-                          type="text"
-                          value={editForm?.fname || ''}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm!, fname: e.target.value })
-                          }
-                          className="border border-slate-300 rounded px-2 py-1 w-full"
-                        />
-                      ) : (
-                        student.fname
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">
-                      {editingId === student.id ? (
-                        <input
-                          type="text"
-                          value={editForm?.mname || ''}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm!, mname: e.target.value })
-                          }
-                          className="border border-slate-300 rounded px-2 py-1 w-full"
-                        />
-                      ) : (
-                        student.mname
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">
-                      {editingId === student.id ? (
-                        <input
-                          type="text"
-                          value={editForm?.semester || ''}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm!, semester: e.target.value })
-                          }
-                          className="border border-slate-300 rounded px-2 py-1 w-full"
-                        />
-                      ) : (
-                        student.semester
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">
-                      {editingId === student.id ? (
-                        <input
-                          type="text"
-                          value={editForm?.yearlevel || ''}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm!, yearlevel: e.target.value })
-                          }
-                          className="border border-slate-300 rounded px-2 py-1 w-full"
-                        />
-                      ) : (
-                        student.yearlevel
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {editingId === student.id ? (
-                        <select
-                          value={editForm?.enrollment_status || ''}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm!,
-                              enrollment_status: e.target.value as 'Pending' | 'Enrolled',
-                            })
-                          }
-                          className="border border-slate-300 rounded px-2 py-1"
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Enrolled">Enrolled</option>
-                        </select>
-                      ) : (
-                        <span
-                          className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                            student.enrollment_status === 'Enrolled'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {student.enrollment_status}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        {editingId === student.id ? (
-                          <>
-                            <button
-                              onClick={handleUpdate}
-                              className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingId(null);
-                                setEditForm(null);
-                              }}
-                              className="px-3 py-1.5 bg-slate-600 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleEdit(student)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                              <Edit size={16} />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(student.id)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-800">{student.enrollment_status}</td>
                   </tr>
                 ))}
               </tbody>
